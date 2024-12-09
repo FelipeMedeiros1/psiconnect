@@ -25,6 +25,7 @@ public class Paciente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Embedded
     private Responsavel responsavel;
     private String nome;
     private LocalDate dataNascimento;
@@ -37,11 +38,14 @@ public class Paciente {
     private BigDecimal valorSessao;
     private String prontuario;
     private static int contadorProntuario = 1;
-    private Boolean ativo;
+    private Boolean status ;
     private String motivoAlta;
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Sessao> sessoes = new ArrayList<>();
+
 
     public Paciente(DadosCadastroPaciente dados) {
-        this.ativo = true;
+        this.status = true;
         this.responsavel = dados.responsavel();
         this.nome = dados.nome();
         this.dataNascimento = dados.dataNascimento();
@@ -76,12 +80,12 @@ public class Paciente {
     }
 
     public DadosAtualizacaoPaciente altaPaciente(String motivoAlta) {
-        this.ativo = false;
+        this.status = false;
         this.motivoAlta = motivoAlta;
         return null;
     }
 
-    private List<Sessao> sessoes = new ArrayList<>();
+
 
     public void adicionarSessao(Sessao sessao) {
         this.sessoes.add(sessao);

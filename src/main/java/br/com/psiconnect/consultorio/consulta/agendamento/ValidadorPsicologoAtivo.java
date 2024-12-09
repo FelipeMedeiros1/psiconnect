@@ -20,7 +20,7 @@ public class ValidadorPsicologoAtivo implements ValidadorAgendamentoConsulta {
             return;
         }
 
-        var psicologoEstaAtivo = repository.findAtivoById(dados.idPsicologo());
+        var psicologoEstaAtivo = repository.findStatusById(dados.idPsicologo());
         if (!psicologoEstaAtivo) {
             throw new ConsultorioException("Consulta não pode ser agendada com psicólogo inativo!");
         }

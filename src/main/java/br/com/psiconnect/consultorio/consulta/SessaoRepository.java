@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 import java.time.LocalDateTime;
@@ -16,21 +17,20 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
 
     boolean existsByPsicologoIdAndData(Long idPsicologo, LocalDateTime data);
 
+    List<Sessao> findAllByPaciente_IdAndDataBetween(Long pacienteId, LocalDateTime inicioMes, LocalDateTime fimMes);
+
     Page<Sessao> findAllByDataGreaterThan(LocalDateTime data, Pageable paginacao);
 
+    @Query("SELECT s FROM Sessao s WHERE s.data BETWEEN :inicioMes AND :fimMes")
+    List<Sessao> gerarRelatorioConsultaMensal(@Param("inicioMes") LocalDateTime inicioMes, @Param("fimMes") LocalDateTime fimMes);
+
+
     @Query("""
-             select new br.com.psiconnect.consultorio.consulta.dto.DadosRelatorioConsultaMensal(p.nome, p.crp, COUNT(s))
-                     from Sessao s join s.psicologo p
-                     where s.data >= :inicioMes and s.data <= :fimMes
-                     group by p.nome, p.crp
+                 select new br.com.psiconnect.consultorio.consulta.dto.DadosRelatorioConsultaMensal(p.nome, p.crp, COUNT(s), s.paciente.nome, SUM(s.valorSessao))
+                 from Sessao s join s.psicologo p
+                 where s.data >= :inicioMes and s.data <= :fimMes
+                 group by p.nome, p.crp, s.paciente.nome
             """)
-    List<DadosRelatorioConsultaMensal> gerarRelatorioConsultaMensal(LocalDateTime inicioMes, LocalDateTime fimMes);
-    @Query("""
-             select new br.com.psiconnect.consultorio.consulta.dto.DadosRelatorioConsultaMensal(p.nome, p.crp, COUNT(s), s.paciente.nome, SUM(s.valorConsulta))
-                     from Sessao s join s.psicologo p
-                     where s.data >= :inicioMes and s.data <= :fimMes
-                     group by p.nome, p.crp, s.paciente.nome
-            """)
-    List<DadosRelatorioConsultaMensal> gerarRelatorioDetalhesMensal(LocalDateTime inicioMes, LocalDateTime fimMes);
+    List<DadosRelatorioConsultaMensal> gerarRelatorioDetalhesMensal(@Param("inicioMes") LocalDateTime inicioMes, @Param("fimMes") LocalDateTime fimMes);
 
 }

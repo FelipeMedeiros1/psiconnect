@@ -1,6 +1,5 @@
 package br.com.psiconnect.infra.controller;
 
-import br.com.psiconnect.consultorio.paciente.Paciente;
 import br.com.psiconnect.consultorio.paciente.PacienteService;
 import br.com.psiconnect.consultorio.paciente.dto.*;
 import br.com.psiconnect.infra.exception.ConsultorioException;
@@ -9,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +26,7 @@ public class PacienteController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<DadosDetalhamentoPaciente> cadastrar(@RequestBody @Valid DadosCadastroPaciente dados, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<DadosDetalhePaciente> cadastrar(@RequestBody @Valid DadosCadastroPaciente dados, UriComponentsBuilder uriBuilder) {
         try {
             var pacienteCadastrado = pacienteService.cadastrar(dados);
             var uri = uriBuilder.path("/pacientes/{id}").buildAndExpand(pacienteCadastrado.id()).toUri();
@@ -44,9 +42,9 @@ public class PacienteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DadosDetalhamentoPaciente> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<DadosDetalhePaciente> buscarPorId(@PathVariable Long id) {
         try {
-            DadosDetalhamentoPaciente paciente = pacienteService.buscarPorId(id);
+            DadosDetalhePaciente paciente = pacienteService.buscarPorId(id);
             return ResponseEntity.ok(paciente);
         } catch (ConsultorioException e) {
             return ResponseEntity.notFound().build();
@@ -54,13 +52,13 @@ public class PacienteController {
     }
 
     @GetMapping("/nome/{nome}")
-    public ResponseEntity<List<DadosDetalhamentoPaciente>> buscarPorNome(@PathVariable String nome) {
+    public ResponseEntity<List<DadosDetalhePaciente>> buscarPorNome(@PathVariable String nome) {
         return ResponseEntity.ok(pacienteService.buscarPorNome(nome));
     }
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<DadosDetalhamentoPaciente> atualizar(@PathVariable Long id, @RequestBody @Valid DadosAtualizacaoPaciente dados) {
+    public ResponseEntity<DadosDetalhePaciente> atualizar(@PathVariable Long id, @RequestBody @Valid DadosAtualizacaoPaciente dados) {
         if (!id.equals(dados.id())) {
             return ResponseEntity.badRequest().build();
         }

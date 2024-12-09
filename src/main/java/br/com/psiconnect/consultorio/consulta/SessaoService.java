@@ -16,7 +16,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Service
 public class SessaoService {
     @Autowired
@@ -61,7 +65,42 @@ public class SessaoService {
         return sessaoRepository.findAll(paginacao).map(DadosListagemSessao::new);
     }
     public List<DadosRelatorioConsultaMensal> gerarRelatorioMensal(LocalDateTime inicioMes, LocalDateTime fimMes) {
-        return sessaoRepository.gerarRelatorioConsultaMensal(inicioMes, fimMes);
+        // Obtemos a lista de sessões do repositório
+        List<Sessao> sessoes = sessaoRepository.gerarRelatorioConsultaMensal(inicioMes, fimMes);
+
+        // Agrupamos as sessões por psicólogo e paciente para calcular os dados necessários
+        Map<String, Map<String, List<Sessao>>> relatorioAgrupado = sessoes.stream()
+                .collect(Collectors.groupingBy(sessao -> sessao.getPsicologo().getNome(),
+                        Collectors.groupingBy(sessao -> sessao.getPaciente().getNome())));
+
+        List<DadosRelatorioConsultaMensal> relatorioMensal = new ArrayList<>();
+
+        // Preenchemos a lista de DadosRelatorioConsultaMensal
+        for (Map.Entry<String, Map<String, List<Sessao>>> entryPsicologo : relatorioAgrupado.entrySet()) {
+            String nomePsicologo = entryPsicologo.getKey();
+
+            for (Map.Entry<String, List<Sessao>> entryPaciente : entryPsicologo.getValue().entrySet()) {
+                String nomePaciente = entryPaciente.getKey();
+                List<Sessao> sessoesDoPaciente = entryPaciente.getValue(); // Correção aqui
+                Long quantidadeConsultasNoMes = (long) sessoesDoPaciente.size();
+                BigDecimal valorTotalConsultas = sessoesDoPaciente.stream()
+                        .map(Sessao::getValorSessao)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                // Supondo que você tenha um método para obter o CRP do psicólogo
+                String crp = sessoesDoPaciente.get(0).getPsicologo().getCrp(); // Exemplo de como obter o CRP
+
+                relatorioMensal.add(new DadosRelatorioConsultaMensal(
+                        nomePsicologo,
+                        crp,
+                        quantidadeConsultasNoMes,
+                        nomePaciente,
+                        valorTotalConsultas
+                ));
+            }
+        }
+
+        return relatorioMensal;
     }
 
     public List<DadosRelatorioConsultaMensal> gerarRelatorioDetalhesMensal(LocalDateTime inicioMes, LocalDateTime fimMes) {

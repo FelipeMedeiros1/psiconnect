@@ -20,23 +20,28 @@ public interface PsicologoRepository extends JpaRepository<Psicologo,Long> {
 
     boolean existsByCrp(String crp);
 
-    @Query("""
-            select p from Psicologo p
-            where
-            p.ativo = true
-            and
-            p.especialidade = :especialidade
-            and
-            p.id not in(
-                select c.psicologo.id from Sessao s
-                where
-                s.data = :data
-            )
-            order by random()
-            limit 1
-        """)
-    Psicologo escolherPsicologoLivreNaData(Especialidade especialidade, LocalDateTime data);
-    @Query("select p from Psicologo p where lower(p.nome) like %:nome%")
+    @Query("SELECT p FROM Psicologo p WHERE p.especialidade = :especialidade AND p.id NOT IN (SELECT s.psicologo.id FROM Sessao s WHERE s.data = :data)")
+    Psicologo escolherPsicologoLivreNaData(@Param("especialidade") Especialidade especialidade, @Param("data") LocalDateTime data);
+
+
+
+//    @Query("""
+//            select p from Psicologo p
+//            where
+//            p.ativo = true
+//            and
+//            p.especialidade = :especialidade
+//            and
+//            p.id not in(
+//                select c.psicologo.id from Sessao s
+//                where
+//                s.data = :data
+//            )
+//            order by random()
+//            limit 1
+//        """)
+//    Psicologo escolherPsicologoLivreNaData(Especialidade especialidade, LocalDateTime data);
+//    @Query("select p from Psicologo p where lower(p.nome) like %:nome%")
     List<Psicologo> findByNomeContainingIgnoreCase(@Param("nome") String nome);
 
 

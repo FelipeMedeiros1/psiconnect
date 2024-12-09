@@ -1,6 +1,6 @@
 package br.com.psiconnect.consultorio.psicologo;
 
-import br.com.psiconnect.consultorio.psicologo.dto.DadosDetalhamentoPsicologo;
+import br.com.psiconnect.consultorio.psicologo.dto.DadosDetalhePsicologo;
 import br.com.psiconnect.infra.exception.ConsultorioException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,14 +37,14 @@ public class PsicologoService {
         return psicologoRepository.findAll(ordenacao);
     }
 
-    public Page<DadosDetalhamentoPsicologo> consultar(Pageable paginacao) {
-        return psicologoRepository.findAll(paginacao).map(DadosDetalhamentoPsicologo::new);
+    public Page<DadosDetalhePsicologo> consultar(Pageable paginacao) {
+        return psicologoRepository.findAll(paginacao).map(DadosDetalhePsicologo::new);
     }
 
-    public List<DadosDetalhamentoPsicologo> buscarPorNome(String nome) {
+    public List<DadosDetalhePsicologo> buscarPorNome(String nome) {
         return psicologoRepository.findByNomeContainingIgnoreCase(nome)
                 .stream()
-                .map(DadosDetalhamentoPsicologo::new)
+                .map(DadosDetalhePsicologo::new)
                 .collect(Collectors.toList());
     }
 

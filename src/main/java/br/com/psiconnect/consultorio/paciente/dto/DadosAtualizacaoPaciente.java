@@ -12,6 +12,7 @@ public record DadosAtualizacaoPaciente(
         BigDecimal valorConsulta,
         String motivoAlta,
         String nome,
+        Boolean status,
         DadosContato contato,
         DadosEndereco endereco
 

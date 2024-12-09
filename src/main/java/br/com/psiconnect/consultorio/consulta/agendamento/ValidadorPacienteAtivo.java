@@ -15,7 +15,7 @@ public class ValidadorPacienteAtivo implements ValidadorAgendamentoConsulta {
     private PacienteRepository repository;
     @Override
     public void validar(DadosAgendamentoSessao dados) {
-        var pacienteEstaAtivo = repository.findAtivoById(dados.idPaciente());
+        var pacienteEstaAtivo = repository.findStatusById(dados.idPaciente());
         if (!pacienteEstaAtivo) {
             throw new ConsultorioException("Consulta não pode ser agendada! Paciente de alta");
         }
