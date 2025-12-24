@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 @Service
 public class PacienteService {
     private final PacienteRepository pacienteRepository;
-    private final SessaoRepository sessaRepository;
+    private final SessaoRepository sessaoRepository;
 
     public PacienteService(PacienteRepository pacienteRepository, SessaoRepository sessaoRepository) {
         this.pacienteRepository = pacienteRepository;
-        this.sessaRepository = sessaoRepository;
+        this.sessaoRepository = sessaoRepository;
     }
 
     public DadosDetalhePaciente cadastrar(DadosCadastroPaciente dados) {
@@ -56,7 +56,7 @@ public class PacienteService {
         return pacienteRepository.findAll().stream()
                 .map(paciente -> {
                     // Aqui usamos o método ajustado do SessaoRepository
-                    List<Sessao> sessoesDoPaciente = sessaRepository.findAllByPaciente_IdAndDataBetween(paciente.getId(), inicioMes, fimMes);
+                    List<Sessao> sessoesDoPaciente = sessaoRepository.findAllByPaciente_IdAndDataBetween(paciente.getId(), inicioMes, fimMes);
                     return new DadosRelatorioPacienteMensal(
                             paciente.getNome(),
                             sessoesDoPaciente.size(),

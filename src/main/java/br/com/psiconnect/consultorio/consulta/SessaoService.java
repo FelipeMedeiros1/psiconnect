@@ -9,37 +9,37 @@ import br.com.psiconnect.consultorio.paciente.PacienteRepository;
 import br.com.psiconnect.consultorio.psicologo.Psicologo;
 import br.com.psiconnect.consultorio.psicologo.PsicologoRepository;
 import br.com.psiconnect.infra.exception.ConsultorioException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class SessaoService {
-    @Autowired
-    private SessaoRepository sessaoRepository;
-    @Autowired
-    private PsicologoRepository psicologoRepository;
-    @Autowired
-    private PacienteRepository pacienteRepository;
-    @Autowired
-    private List<ValidadorAgendamentoConsulta> validadoresAgendamento;
+    private final SessaoRepository sessaoRepository;
+    private final PsicologoRepository psicologoRepository;
+    private final PacienteRepository pacienteRepository;
+    private final List<ValidadorAgendamentoConsulta> validadoresAgendamento;
+    private final RelatorioConsultaMensalAssembler relatorioConsultaMensalAssembler;
+
+    public SessaoService(SessaoRepository sessaoRepository,
+                         PsicologoRepository psicologoRepository,
+                         PacienteRepository pacienteRepository,
+                         List<ValidadorAgendamentoConsulta> validadoresAgendamento,
+                         RelatorioConsultaMensalAssembler relatorioConsultaMensalAssembler) {
+        this.sessaoRepository = sessaoRepository;
+        this.psicologoRepository = psicologoRepository;
+        this.pacienteRepository = pacienteRepository;
+        this.validadoresAgendamento = validadoresAgendamento;
+        this.relatorioConsultaMensalAssembler = relatorioConsultaMensalAssembler;
+    }
 
     public DadosDetalhamentoSessao agendar(DadosAgendamentoSessao dados) {
-        if (!pacienteRepository.existsById(dados.idPaciente())) {
-            throw new ConsultorioException("Id do paciente informado não existe!");
-        }
-
-        if (dados.idPsicologo() != null && !psicologoRepository.existsById(dados.idPsicologo())) {
-            throw new ConsultorioException("Id do psicólogo informado não existe!");
-        }
+        validarPaciente(dados);
+        validarPsicologo(dados);
 
         validadoresAgendamento.forEach(v -> v.validar(dados));
 
@@ -65,42 +65,8 @@ public class SessaoService {
         return sessaoRepository.findAll(paginacao).map(DadosListagemSessao::new);
     }
     public List<DadosRelatorioConsultaMensal> gerarRelatorioMensal(LocalDateTime inicioMes, LocalDateTime fimMes) {
-        // Obtemos a lista de sessões do repositório
         List<Sessao> sessoes = sessaoRepository.gerarRelatorioConsultaMensal(inicioMes, fimMes);
-
-        // Agrupamos as sessões por psicólogo e paciente para calcular os dados necessários
-        Map<String, Map<String, List<Sessao>>> relatorioAgrupado = sessoes.stream()
-                .collect(Collectors.groupingBy(sessao -> sessao.getPsicologo().getNome(),
-                        Collectors.groupingBy(sessao -> sessao.getPaciente().getNome())));
-
-        List<DadosRelatorioConsultaMensal> relatorioMensal = new ArrayList<>();
-
-        // Preenchemos a lista de DadosRelatorioConsultaMensal
-        for (Map.Entry<String, Map<String, List<Sessao>>> entryPsicologo : relatorioAgrupado.entrySet()) {
-            String nomePsicologo = entryPsicologo.getKey();
-
-            for (Map.Entry<String, List<Sessao>> entryPaciente : entryPsicologo.getValue().entrySet()) {
-                String nomePaciente = entryPaciente.getKey();
-                List<Sessao> sessoesDoPaciente = entryPaciente.getValue(); // Correção aqui
-                Long quantidadeConsultasNoMes = (long) sessoesDoPaciente.size();
-                BigDecimal valorTotalConsultas = sessoesDoPaciente.stream()
-                        .map(Sessao::getValorSessao)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                // Supondo que você tenha um método para obter o CRP do psicólogo
-                String crp = sessoesDoPaciente.get(0).getPsicologo().getCrp(); // Exemplo de como obter o CRP
-
-                relatorioMensal.add(new DadosRelatorioConsultaMensal(
-                        nomePsicologo,
-                        crp,
-                        quantidadeConsultasNoMes,
-                        nomePaciente,
-                        valorTotalConsultas
-                ));
-            }
-        }
-
-        return relatorioMensal;
+        return relatorioConsultaMensalAssembler.criar(sessoes);
     }
 
     public List<DadosRelatorioConsultaMensal> gerarRelatorioDetalhesMensal(LocalDateTime inicioMes, LocalDateTime fimMes) {
@@ -112,5 +78,17 @@ public class SessaoService {
             return psicologoRepository.getReferenceById(dados.idPsicologo());
         }
         return psicologoRepository.escolherPsicologoLivreNaData(dados.especialidade(), dados.data());
+    }
+
+    private void validarPaciente(DadosAgendamentoSessao dados) {
+        if (!pacienteRepository.existsById(dados.idPaciente())) {
+            throw new ConsultorioException("Id do paciente informado não existe!");
+        }
+    }
+
+    private void validarPsicologo(DadosAgendamentoSessao dados) {
+        if (dados.idPsicologo() != null && !psicologoRepository.existsById(dados.idPsicologo())) {
+            throw new ConsultorioException("Id do psicólogo informado não existe!");
+        }
     }
 }
