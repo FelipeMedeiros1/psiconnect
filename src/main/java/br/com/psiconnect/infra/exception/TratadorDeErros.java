@@ -30,8 +30,8 @@ public class TratadorDeErros {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-    @ExceptionHandler(ValidaExcecao.class)
-    public ResponseEntity<String> tratarErroRegraDeNegocio(ValidaExcecao ex) {
+    @ExceptionHandler(ConsultorioException.class)
+    public ResponseEntity<String> tratarErroRegraDeNegocio(ConsultorioException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
@@ -46,13 +46,3 @@ public class TratadorDeErros {
         }
     }
 }
-
-class ValidaExcecao extends RuntimeException {
-
-    private static final long serialVersionUID = 1L;
-
-    public ValidaExcecao(String mensagem) {
-        super(mensagem);
-    }
-}
-

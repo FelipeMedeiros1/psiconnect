@@ -2,9 +2,7 @@ package br.com.psiconnect.infra.controller;
 
 import br.com.psiconnect.consultorio.paciente.PacienteService;
 import br.com.psiconnect.consultorio.paciente.dto.*;
-import br.com.psiconnect.infra.exception.ConsultorioException;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -13,27 +11,29 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/pacientes")
 public class PacienteController {
 
-    @Autowired
-    private PacienteService pacienteService;
+    private final PacienteService pacienteService;
+
+    public PacienteController(PacienteService pacienteService) {
+        this.pacienteService = pacienteService;
+    }
 
     @PostMapping
     @Transactional
     public ResponseEntity<DadosDetalhePaciente> cadastrar(@RequestBody @Valid DadosCadastroPaciente dados, UriComponentsBuilder uriBuilder) {
-        try {
-            var pacienteCadastrado = pacienteService.cadastrar(dados);
-            var uri = uriBuilder.path("/pacientes/{id}").buildAndExpand(pacienteCadastrado.id()).toUri();
-            return ResponseEntity.created(uri).body(pacienteCadastrado);
-        } catch (ConsultorioException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
+        var pacienteCadastrado = pacienteService.cadastrar(dados);
+        var uri = uriBuilder.path("/pacientes/{id}").buildAndExpand(pacienteCadastrado.id()).toUri();
+        return ResponseEntity.created(uri).body(pacienteCadastrado);
     }
 
     @GetMapping
@@ -43,12 +43,8 @@ public class PacienteController {
 
     @GetMapping("/{id}")
     public ResponseEntity<DadosDetalhePaciente> buscarPorId(@PathVariable Long id) {
-        try {
-            DadosDetalhePaciente paciente = pacienteService.buscarPorId(id);
-            return ResponseEntity.ok(paciente);
-        } catch (ConsultorioException e) {
-            return ResponseEntity.notFound().build();
-        }
+        DadosDetalhePaciente paciente = pacienteService.buscarPorId(id);
+        return ResponseEntity.ok(paciente);
     }
 
     @GetMapping("/nome/{nome}")
@@ -80,10 +76,10 @@ public class PacienteController {
 
     @GetMapping("/relatorio/{inicioMes}/{fimMes}")
     public ResponseEntity<List<DadosRelatorioPacienteMensal>> gerarRelatorioMensal(
-            @PathVariable String inicioMes,
-            @PathVariable String fimMes) {
-        LocalDateTime inicio = LocalDateTime.parse(inicioMes,  DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        LocalDateTime fim = LocalDateTime.parse(fimMes, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicioMes,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fimMes) {
+        LocalDateTime inicio = inicioMes.atStartOfDay();
+        LocalDateTime fim = fimMes.atTime(LocalTime.MAX);
         return ResponseEntity.ok(pacienteService.gerarRelatorioMensal(inicio, fim));
     }
 }

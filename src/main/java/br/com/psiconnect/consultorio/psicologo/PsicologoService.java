@@ -1,14 +1,13 @@
 package br.com.psiconnect.consultorio.psicologo;
 
-import br.com.psiconnect.consultorio.psicologo.dto.DadosDetalhePsicologo;
 import br.com.psiconnect.infra.exception.ConsultorioException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import br.com.psiconnect.consultorio.psicologo.dto.DadosAtualizacaoPsicologo;
 import br.com.psiconnect.consultorio.psicologo.dto.DadosCadastroPsicologo;
-
+import br.com.psiconnect.consultorio.psicologo.dto.DadosDetalhePsicologo;
+import br.com.psiconnect.consultorio.psicologo.dto.DadosListagemPsicologo;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,23 +21,18 @@ public class PsicologoService {
         this.psicologoRepository = psicologoRepository;
     }
 
-    public Psicologo cadastrar(DadosCadastroPsicologo dados) {
+    public DadosDetalhePsicologo cadastrar(DadosCadastroPsicologo dados) {
         var jaCadastrado = psicologoRepository.existsByCrp(dados.crp());
 
         if (jaCadastrado) {
             throw new ConsultorioException("Este CRP: " + dados.crp() + ", já está cadastrado");
         }
         Psicologo psicologo = new Psicologo(dados);
-        return psicologoRepository.save(psicologo);
+        return new DadosDetalhePsicologo(psicologoRepository.save(psicologo));
     }
 
-    public List<Psicologo> listar() {
-        Sort ordenacao = Sort.by("especialidade").descending().and(Sort.by("nome").ascending());
-        return psicologoRepository.findAll(ordenacao);
-    }
-
-    public Page<DadosDetalhePsicologo> consultar(Pageable paginacao) {
-        return psicologoRepository.findAll(paginacao).map(DadosDetalhePsicologo::new);
+    public Page<DadosListagemPsicologo> listar(Pageable paginacao) {
+        return psicologoRepository.findAll(paginacao).map(DadosListagemPsicologo::new);
     }
 
     public List<DadosDetalhePsicologo> buscarPorNome(String nome) {
@@ -48,12 +42,15 @@ public class PsicologoService {
                 .collect(Collectors.toList());
     }
 
-    public Psicologo buscarPorId(Long id) {
-        return psicologoRepository.findById(id).orElseThrow(() -> new RuntimeException("Psicólogo com id: " + id + ", não encontrado"));
+    public DadosDetalhePsicologo buscarPorId(Long id) {
+        return psicologoRepository.findById(id)
+                .map(DadosDetalhePsicologo::new)
+                .orElseThrow(() -> new ConsultorioException("Psicólogo com id: " + id + ", não encontrado"));
     }
 
     public void atualizar(Long id, DadosAtualizacaoPsicologo dados) {
-        Psicologo psicologo = buscarPorId(id);
+        Psicologo psicologo = psicologoRepository.findById(id)
+                .orElseThrow(() -> new ConsultorioException("Psicólogo com id: " + id + ", não encontrado"));
         psicologo.atualizarInformacoes(dados);
         psicologoRepository.save(psicologo);
     }
@@ -63,7 +60,8 @@ public class PsicologoService {
     }
 
     public void desativar(Long id) {
-        Psicologo psicologo = buscarPorId(id);
+        Psicologo psicologo = psicologoRepository.findById(id)
+                .orElseThrow(() -> new ConsultorioException("Psicólogo com id: " + id + ", não encontrado"));
         psicologo.desativar();
         psicologoRepository.save(psicologo);
     }
