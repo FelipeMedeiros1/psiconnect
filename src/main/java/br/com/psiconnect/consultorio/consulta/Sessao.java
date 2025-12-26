@@ -33,6 +33,8 @@ public class Sessao {
     private String prontuario;
     private BigDecimal valorSessao;
     private boolean compareceu;
+    @Enumerated(EnumType.STRING)
+    private StatusSessao status;
 
     public Sessao(LocalDateTime data, Paciente paciente, Psicologo psicologo) {
         this.data = data;
@@ -40,6 +42,7 @@ public class Sessao {
         this.psicologo = psicologo;
         this.prontuario = paciente.getProntuario();
         this.compareceu = false;
+        this.status = StatusSessao.AGENDADA;
     }
 
     public void marcarPresenca() {
