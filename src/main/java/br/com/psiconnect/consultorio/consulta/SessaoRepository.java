@@ -21,6 +21,8 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
 
     Page<Sessao> findAllByDataGreaterThan(LocalDateTime data, Pageable paginacao);
 
+    List<Sessao> findAllByDataBetweenAndCompareceuTrue(LocalDateTime inicioMes, LocalDateTime fimMes);
+
     @Query("SELECT s FROM Sessao s WHERE s.data BETWEEN :inicioMes AND :fimMes")
     List<Sessao> gerarRelatorioConsultaMensal(@Param("inicioMes") LocalDateTime inicioMes, @Param("fimMes") LocalDateTime fimMes);
 

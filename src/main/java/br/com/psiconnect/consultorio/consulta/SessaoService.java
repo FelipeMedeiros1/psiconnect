@@ -140,6 +140,8 @@ public class SessaoService {
         if (cobravel && reagendada) {
             throw new ConsultorioException("Sessão não pode ser cobrada e reagendada ao mesmo tempo");
         }
+    }
+
     public void atualizarValoresSessao(DadosAtualizacaoValorSessao dados) {
         validarPaciente(dados.idPaciente());
         validarValorSessao(dados.valorSessao());
