@@ -55,7 +55,7 @@ public class Sessao {
         this.paciente.atualizarProntuario(this.prontuario);
     }
 
-    public void cancelar(StatusSessao status) {
-        this.status = status;
+    public void atualizarValorSessao(BigDecimal valorSessao) {
+        this.valorSessao = valorSessao;
     }
 }
