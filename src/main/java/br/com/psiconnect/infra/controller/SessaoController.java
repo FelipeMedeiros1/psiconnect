@@ -2,6 +2,8 @@ package br.com.psiconnect.infra.controller;
 
 import br.com.psiconnect.consultorio.consulta.SessaoService;
 import br.com.psiconnect.consultorio.consulta.dto.DadosAgendamentoSessao;
+import br.com.psiconnect.consultorio.consulta.dto.DadosAtualizacaoSessao;
+import br.com.psiconnect.consultorio.consulta.dto.DadosCancelamentoSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosDetalhamentoSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosListagemSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosRelatorioConsultaMensal;
@@ -38,6 +40,34 @@ public class SessaoController {
     @GetMapping
     public ResponseEntity<Page<DadosListagemSessao>> listar(@PageableDefault(size = 20, sort = {"data"}) Pageable paginacao) {
         return ResponseEntity.ok(sessaoService.listarSessoes(paginacao));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DadosDetalhamentoSessao> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(sessaoService.buscarPorId(id));
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> atualizar(@PathVariable Long id, @RequestBody @Valid DadosAtualizacaoSessao dados) {
+        if (!id.equals(dados.id())) {
+            return ResponseEntity.badRequest().build();
+        }
+        sessaoService.atualizar(id, dados);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        sessaoService.deletar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/inativar")
+    @Transactional
+    public ResponseEntity<Void> inativar(@PathVariable Long id, @RequestBody @Valid DadosCancelamentoSessao dados) {
+        sessaoService.inativar(id, dados);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/relatorio/{inicioMes}/{fimMes}")
