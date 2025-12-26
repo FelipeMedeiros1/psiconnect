@@ -67,8 +67,8 @@ public class Paciente {
         if (dados.nome() != null) {
             this.nome = dados.nome();
         }
-        if (dados.nome() != null) {
-            this.valorSessao = dados.valorConsulta();
+        if (dados.valorConsulta() != null) {
+            atualizarValorSessao(dados.valorConsulta());
         }
         if (dados.contato() != null) {
             this.contato.atualizarContato(dados.contato());
@@ -83,6 +83,10 @@ public class Paciente {
         this.status = false;
         this.motivoAlta = motivoAlta;
         return null;
+    }
+
+    public void atualizarValorSessao(BigDecimal valorSessao) {
+        this.valorSessao = valorSessao;
     }
 
 

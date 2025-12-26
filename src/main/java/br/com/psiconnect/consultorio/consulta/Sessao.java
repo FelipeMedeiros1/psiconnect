@@ -51,4 +51,8 @@ public class Sessao {
         this.prontuario += "\n" + dataFormatada + " - " + informacoes;
         this.paciente.atualizarProntuario(this.prontuario);
     }
+
+    public void atualizarValorSessao(BigDecimal valorSessao) {
+        this.valorSessao = valorSessao;
+    }
 }

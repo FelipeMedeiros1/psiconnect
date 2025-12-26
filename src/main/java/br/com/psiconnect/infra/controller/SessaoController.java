@@ -2,6 +2,7 @@ package br.com.psiconnect.infra.controller;
 
 import br.com.psiconnect.consultorio.consulta.SessaoService;
 import br.com.psiconnect.consultorio.consulta.dto.DadosAgendamentoSessao;
+import br.com.psiconnect.consultorio.consulta.dto.DadosAtualizacaoValorSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosDetalhamentoSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosListagemSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosRelatorioConsultaMensal;
@@ -54,5 +55,12 @@ public class SessaoController {
         LocalDateTime inicio = inicioMes.atStartOfDay();
         LocalDateTime fim = fimMes.atTime(LocalTime.MAX);
         return ResponseEntity.ok(sessaoService.gerarRelatorioDetalhesMensal(inicio, fim));
+    }
+
+    @PutMapping("/valores")
+    @Transactional
+    public ResponseEntity<Void> atualizarValoresSessao(@RequestBody @Valid DadosAtualizacaoValorSessao dados) {
+        sessaoService.atualizarValoresSessao(dados);
+        return ResponseEntity.noContent().build();
     }
 }

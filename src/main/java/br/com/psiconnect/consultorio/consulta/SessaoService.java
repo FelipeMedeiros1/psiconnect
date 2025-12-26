@@ -1,6 +1,7 @@
 package br.com.psiconnect.consultorio.consulta;
 
 import br.com.psiconnect.consultorio.consulta.agendamento.ValidadorAgendamentoConsulta;
+import br.com.psiconnect.consultorio.consulta.dto.DadosAtualizacaoValorSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosAgendamentoSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosDetalhamentoSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosListagemSessao;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,7 +41,7 @@ public class SessaoService {
     }
 
     public DadosDetalhamentoSessao agendar(DadosAgendamentoSessao dados) {
-        validarPaciente(dados);
+        validarPaciente(dados.idPaciente());
         validarPsicologo(dados);
 
         validadoresAgendamento.forEach(v -> v.validar(dados));
@@ -73,6 +76,21 @@ public class SessaoService {
         return sessaoRepository.gerarRelatorioDetalhesMensal(inicioMes, fimMes);
     }
 
+    public void atualizarValoresSessao(DadosAtualizacaoValorSessao dados) {
+        validarPaciente(dados.idPaciente());
+        validarValorSessao(dados.valorSessao());
+        validarPeriodo(dados.inicioMes(), dados.fimMes());
+
+        var paciente = pacienteRepository.getReferenceById(dados.idPaciente());
+        paciente.atualizarValorSessao(dados.valorSessao());
+
+        var inicioMes = dados.inicioMes().atStartOfDay();
+        var fimMes = dados.fimMes().atTime(LocalTime.MAX);
+
+        sessaoRepository.findAllByPaciente_IdAndDataBetween(dados.idPaciente(), inicioMes, fimMes)
+                .forEach(sessao -> sessao.atualizarValorSessao(dados.valorSessao()));
+    }
+
     private Psicologo escolherPsicologo(DadosAgendamentoSessao dados) {
         if (dados.idPsicologo() != null) {
             return psicologoRepository.getReferenceById(dados.idPsicologo());
@@ -80,8 +98,8 @@ public class SessaoService {
         return psicologoRepository.escolherPsicologoLivreNaData(dados.especialidade(), dados.data());
     }
 
-    private void validarPaciente(DadosAgendamentoSessao dados) {
-        if (!pacienteRepository.existsById(dados.idPaciente())) {
+    private void validarPaciente(Long idPaciente) {
+        if (!pacienteRepository.existsById(idPaciente)) {
             throw new ConsultorioException("Id do paciente informado não existe!");
         }
     }
@@ -89,6 +107,24 @@ public class SessaoService {
     private void validarPsicologo(DadosAgendamentoSessao dados) {
         if (dados.idPsicologo() != null && !psicologoRepository.existsById(dados.idPsicologo())) {
             throw new ConsultorioException("Id do psicólogo informado não existe!");
+        }
+    }
+
+    private void validarValorSessao(BigDecimal valorSessao) {
+        if (valorSessao == null) {
+            throw new ConsultorioException("Valor da sessão é obrigatório!");
+        }
+        if (valorSessao.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ConsultorioException("Valor da sessão deve ser maior que zero!");
+        }
+    }
+
+    private void validarPeriodo(LocalDate inicioMes, LocalDate fimMes) {
+        if (inicioMes == null || fimMes == null) {
+            throw new ConsultorioException("Período para atualização é obrigatório!");
+        }
+        if (inicioMes.isAfter(fimMes)) {
+            throw new ConsultorioException("Data inicial não pode ser maior que a data final!");
         }
     }
 }
