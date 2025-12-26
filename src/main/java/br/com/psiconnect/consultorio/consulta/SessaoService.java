@@ -2,6 +2,8 @@ package br.com.psiconnect.consultorio.consulta;
 
 import br.com.psiconnect.consultorio.consulta.agendamento.ValidadorAgendamentoConsulta;
 import br.com.psiconnect.consultorio.consulta.dto.DadosAgendamentoSessao;
+import br.com.psiconnect.consultorio.consulta.dto.DadosAtualizacaoSessao;
+import br.com.psiconnect.consultorio.consulta.dto.DadosCancelamentoSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosDetalhamentoSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosListagemSessao;
 import br.com.psiconnect.consultorio.consulta.dto.DadosRelatorioConsultaMensal;
@@ -64,6 +66,42 @@ public class SessaoService {
     public Page<DadosListagemSessao> listarSessoes(Pageable paginacao) {
         return sessaoRepository.findAll(paginacao).map(DadosListagemSessao::new);
     }
+
+    public DadosDetalhamentoSessao buscarPorId(Long id) {
+        return sessaoRepository.findById(id)
+                .map(DadosDetalhamentoSessao::new)
+                .orElseThrow(() -> new ConsultorioException("Sessão com id: " + id + ", não encontrada"));
+    }
+
+    public void atualizar(Long id, DadosAtualizacaoSessao dados) {
+        Sessao sessao = sessaoRepository.findById(id)
+                .orElseThrow(() -> new ConsultorioException("Sessão com id: " + id + ", não encontrada"));
+        atualizarData(dados, sessao);
+        atualizarPsicologo(dados, sessao);
+        atualizarPaciente(dados, sessao);
+        sessaoRepository.save(sessao);
+    }
+
+    public void deletar(Long id) {
+        sessaoRepository.deleteById(id);
+    }
+
+    public void inativar(Long id, DadosCancelamentoSessao dados) {
+        Sessao sessao = sessaoRepository.findById(id)
+                .orElseThrow(() -> new ConsultorioException("Sessão com id: " + id + ", não encontrada"));
+        boolean cobravel = Boolean.TRUE.equals(dados.cobravel());
+        boolean reagendada = Boolean.TRUE.equals(dados.reagendada());
+        validarCancelamento(cobravel, reagendada);
+        StatusSessao status = StatusSessao.CANCELADA;
+        if (cobravel) {
+            status = StatusSessao.CANCELADA_COBRAVEL;
+        }
+        if (reagendada) {
+            status = StatusSessao.CANCELADA_REAGENDADA;
+        }
+        sessao.cancelar(status);
+        sessaoRepository.save(sessao);
+    }
     public List<DadosRelatorioConsultaMensal> gerarRelatorioMensal(LocalDateTime inicioMes, LocalDateTime fimMes) {
         List<Sessao> sessoes = sessaoRepository.gerarRelatorioConsultaMensal(inicioMes, fimMes);
         return relatorioConsultaMensalAssembler.criar(sessoes);
@@ -71,6 +109,34 @@ public class SessaoService {
 
     public List<DadosRelatorioConsultaMensal> gerarRelatorioDetalhesMensal(LocalDateTime inicioMes, LocalDateTime fimMes) {
         return sessaoRepository.gerarRelatorioDetalhesMensal(inicioMes, fimMes);
+    }
+
+    private void atualizarData(DadosAtualizacaoSessao dados, Sessao sessao) {
+        if (dados.data() != null) {
+            sessao.setData(dados.data());
+        }
+    }
+
+    private void atualizarPsicologo(DadosAtualizacaoSessao dados, Sessao sessao) {
+        if (dados.idPsicologo() != null) {
+            Psicologo psicologo = psicologoRepository.findById(dados.idPsicologo())
+                    .orElseThrow(() -> new ConsultorioException("Psicólogo com id: " + dados.idPsicologo() + ", não encontrado"));
+            sessao.setPsicologo(psicologo);
+        }
+    }
+
+    private void atualizarPaciente(DadosAtualizacaoSessao dados, Sessao sessao) {
+        if (dados.idPaciente() != null) {
+            var paciente = pacienteRepository.findById(dados.idPaciente())
+                    .orElseThrow(() -> new ConsultorioException("Paciente com id: " + dados.idPaciente() + ", não encontrado"));
+            sessao.setPaciente(paciente);
+        }
+    }
+
+    private void validarCancelamento(boolean cobravel, boolean reagendada) {
+        if (cobravel && reagendada) {
+            throw new ConsultorioException("Sessão não pode ser cobrada e reagendada ao mesmo tempo");
+        }
     }
 
     private Psicologo escolherPsicologo(DadosAgendamentoSessao dados) {

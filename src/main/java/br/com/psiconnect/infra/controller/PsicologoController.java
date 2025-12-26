@@ -71,4 +71,11 @@ public class PsicologoController {
         psicologoService.desativar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/inativar")
+    @Transactional
+    public ResponseEntity<Void> inativar(@PathVariable Long id) {
+        psicologoService.desativar(id);
+        return ResponseEntity.noContent().build();
+    }
 }
