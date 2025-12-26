@@ -3,9 +3,12 @@ package br.com.psiconnect.consultorio.paciente;
 import br.com.psiconnect.consultorio.consulta.Sessao;
 import jakarta.persistence.*;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import br.com.psiconnect.consultorio.contato.Contato;
 import br.com.psiconnect.consultorio.endereco.Endereco;
 import br.com.psiconnect.consultorio.paciente.dto.DadosAtualizacaoPaciente;
@@ -35,7 +38,10 @@ public class Paciente {
     private Contato contato;
     @Embedded
     private Endereco endereco;
-    private BigDecimal valorSessao;
+    @Embedded
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private ValorSessao valorSessao;
     private String prontuario;
     private static int contadorProntuario = 1;
     private Boolean status ;
@@ -55,7 +61,7 @@ public class Paciente {
         this.contato = new Contato(dados.contato());
         this.prontuario = "PR" + String.format("%03d", contadorProntuario);
         contadorProntuario++;
-        this.valorSessao = BigDecimal.ZERO;
+        this.valorSessao = ValorSessao.zero();
 
     }
 
@@ -85,8 +91,19 @@ public class Paciente {
         return null;
     }
 
+    public BigDecimal getValorSessao() {
+        return obterValorSessao().valor();
+    }
+
     public void atualizarValorSessao(BigDecimal valorSessao) {
-        this.valorSessao = valorSessao;
+        obterValorSessao().atualizar(valorSessao);
+    }
+
+    private ValorSessao obterValorSessao() {
+        if (this.valorSessao == null) {
+            this.valorSessao = ValorSessao.zero();
+        }
+        return this.valorSessao;
     }
 
 

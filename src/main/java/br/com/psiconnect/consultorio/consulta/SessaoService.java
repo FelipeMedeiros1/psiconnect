@@ -58,7 +58,7 @@ public class SessaoService {
         sessao.setValorSessao(paciente.getValorSessao());
 
         if (paciente.getValorSessao().compareTo(BigDecimal.ZERO) == 0) {
-            paciente.setValorSessao(dados.valorSessao());
+            paciente.atualizarValorSessao(dados.valorSessao());
             pacienteRepository.save(paciente);
         }
 
