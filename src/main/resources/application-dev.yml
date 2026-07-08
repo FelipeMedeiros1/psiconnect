@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:loja_brinquedo
+    url: jdbc:h2:mem:psiconnect
     driverClassName: org.h2.Driver
     username: felipe
     password:
