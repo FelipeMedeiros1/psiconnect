@@ -1,6 +1,8 @@
 package br.com.psiconnect.consultorio.domain.paciente;
 
 import lombok.Getter;
+import lombok.AccessLevel;
+import br.com.psiconnect.consultorio.domain.exception.ConsultorioException;
 
 import br.com.psiconnect.consultorio.domain.consulta.Sessao;
 import jakarta.persistence.*;
@@ -18,7 +20,7 @@ import java.util.List;
 @Table(name = "pacientes")
 @Entity(name = "Paciente")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
 public class Paciente {
     @Id
@@ -62,11 +64,11 @@ public class Paciente {
     }
 
     public void atualizarInformacoes(String nome, BigDecimal valorConsulta, Contato contato, Endereco endereco) {
+        if (valorConsulta != null) {
+            definirValorSessao(valorConsulta);
+        }
         if (nome != null) {
             this.nome = nome;
-        }
-        if (valorConsulta != null) {
-            this.valorSessao = valorConsulta;
         }
         if (contato != null) {
             this.contato = this.contato == null ? contato : this.contato.atualizarContato(contato);
@@ -99,6 +101,25 @@ public class Paciente {
     }
 
     public void definirValorSessao(BigDecimal valorSessao) {
+        if (valorSessao == null || valorSessao.signum() < 0) {
+            throw new ConsultorioException("O valor da sessão deve ser informado e não pode ser negativo!");
+        }
         this.valorSessao = valorSessao;
+    }
+
+    public BigDecimal definirValorParaAgendamento(BigDecimal valorInformado) {
+        if (valorInformado != null && valorInformado.signum() < 0) {
+            throw new ConsultorioException("O valor da sessão não pode ser negativo!");
+        }
+        if (valorSessao == null || valorSessao.signum() == 0) {
+            definirValorSessao(valorInformado);
+        }
+        return valorSessao;
+    }
+
+    public void validarAgendamento() {
+        if (!Boolean.TRUE.equals(status)) {
+            throw new ConsultorioException("Consulta não pode ser agendada! Paciente de alta");
+        }
     }
 }

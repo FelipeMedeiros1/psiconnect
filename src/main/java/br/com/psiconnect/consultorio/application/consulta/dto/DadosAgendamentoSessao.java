@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record DadosAgendamentoSessao(
-        @NotNull
         Long idPsicologo,
         @NotNull
         Long idPaciente,

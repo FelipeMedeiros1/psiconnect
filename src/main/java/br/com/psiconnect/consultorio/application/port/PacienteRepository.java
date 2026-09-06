@@ -14,7 +14,6 @@ public interface PacienteRepository {
     void deleteById(Long id);
     List<Paciente> findAll();
     Page<Paciente> findAll(Pageable paginacao);
-    boolean findStatusById(Long id);
     boolean existsByCpf(String cpf);
     List<Paciente> findByNomeContainingIgnoreCase(String nome);
 }

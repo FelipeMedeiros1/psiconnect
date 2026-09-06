@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Optional;
-import java.time.LocalDateTime;
 
 public interface PsicologoRepository {
     <S extends Psicologo> S save(S entidade);
@@ -17,9 +16,8 @@ public interface PsicologoRepository {
     void deleteById(Long id);
     List<Psicologo> findAll();
     Page<Psicologo> findAll(Pageable paginacao);
-    boolean findAtivoById(Long id);
     boolean existsByCrp(String crp);
-    Psicologo escolherPsicologoLivreNaData(Especialidade especialidade, LocalDateTime data);
+    List<Psicologo> findAllByEspecialidadeOrderByIdAsc(Especialidade especialidade);
     List<Psicologo> findByNomeContainingIgnoreCase(String nome);
     List<Psicologo> findAll(Sort ordenacao);
 }

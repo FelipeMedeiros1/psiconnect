@@ -6,11 +6,13 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.AccessLevel;
+import br.com.psiconnect.consultorio.domain.exception.ConsultorioException;
 
 @Table(name = "psicologos")
 @Entity(name = "Psicologo")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
 public class Psicologo {
     @Id
@@ -51,6 +53,12 @@ public class Psicologo {
 
     public void desativar() {
         this.ativo = false;
+    }
+
+    public void validarAgendamento() {
+        if (!Boolean.TRUE.equals(ativo)) {
+            throw new ConsultorioException("Consulta não pode ser agendada com psicólogo inativo!");
+        }
     }
 
 }

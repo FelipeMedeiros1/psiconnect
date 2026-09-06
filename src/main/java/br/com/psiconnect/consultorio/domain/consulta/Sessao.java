@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.AccessLevel;
 import br.com.psiconnect.consultorio.domain.paciente.Paciente;
 import br.com.psiconnect.consultorio.domain.psicologo.Psicologo;
 
@@ -15,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 @Table(name = "sessoes")
 @Entity(name = "Sessao")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
 public class Sessao {
     @Id
@@ -33,12 +34,13 @@ public class Sessao {
     private BigDecimal valorSessao;
     private boolean compareceu;
 
-    public Sessao(LocalDateTime data, Paciente paciente, Psicologo psicologo) {
+    Sessao(LocalDateTime data, Paciente paciente, Psicologo psicologo, BigDecimal valorSessao) {
         this.data = data;
         this.paciente = paciente;
         this.psicologo = psicologo;
         this.prontuario = paciente.getProntuario();
         this.compareceu = false;
+        this.valorSessao = valorSessao;
     }
 
     public void marcarPresenca() {
@@ -49,8 +51,5 @@ public class Sessao {
         String dataFormatada = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         this.prontuario += "\n" + dataFormatada + " - " + informacoes;
         this.paciente.atualizarProntuario(this.prontuario);
-    }
-    public void definirValorSessao(BigDecimal valorSessao) {
-        this.valorSessao = valorSessao;
     }
 }

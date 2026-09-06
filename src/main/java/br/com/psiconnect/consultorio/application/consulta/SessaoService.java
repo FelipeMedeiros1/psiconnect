@@ -6,7 +6,7 @@ import br.com.psiconnect.consultorio.application.port.SessaoRepository;
 
 import br.com.psiconnect.consultorio.domain.consulta.Sessao;
 
-import br.com.psiconnect.consultorio.application.consulta.agendamento.ValidadorAgendamentoConsulta;
+import br.com.psiconnect.consultorio.domain.consulta.AgendamentoSessao;
 import br.com.psiconnect.consultorio.application.consulta.dto.DadosAgendamentoSessao;
 import br.com.psiconnect.consultorio.application.consulta.dto.DadosDetalhamentoSessao;
 import br.com.psiconnect.consultorio.application.consulta.dto.DadosListagemSessao;
@@ -32,42 +32,24 @@ public class SessaoService {
     private final SessaoRepository sessaoRepository;
     private final PsicologoRepository psicologoRepository;
     private final PacienteRepository pacienteRepository;
-    private final List<ValidadorAgendamentoConsulta> validadoresAgendamento;
+    private final AgendamentoSessao agendamento;
 
-    public SessaoService(SessaoRepository sessaoRepository, PsicologoRepository psicologoRepository, PacienteRepository pacienteRepository, List<ValidadorAgendamentoConsulta> validadoresAgendamento) {
+    public SessaoService(SessaoRepository sessaoRepository, PsicologoRepository psicologoRepository, PacienteRepository pacienteRepository, AgendamentoSessao agendamento) {
         this.sessaoRepository = sessaoRepository;
         this.psicologoRepository = psicologoRepository;
         this.pacienteRepository = pacienteRepository;
-        this.validadoresAgendamento = validadoresAgendamento;
+        this.agendamento = agendamento;
     }
 
     public DadosDetalhamentoSessao agendar(DadosAgendamentoSessao dados) {
-        if (!pacienteRepository.existsById(dados.idPaciente())) {
-            throw new ConsultorioException("Id do paciente informado não existe!");
-        }
+        var paciente = pacienteRepository.findById(dados.idPaciente())
+                .orElseThrow(() -> new ConsultorioException("Id do paciente informado não existe!"));
+        Psicologo psicologo = dados.idPsicologo() == null ? null : psicologoRepository.findById(dados.idPsicologo())
+                .orElseThrow(() -> new ConsultorioException("Id do psicólogo informado não existe!"));
 
-        if (dados.idPsicologo() != null && !psicologoRepository.existsById(dados.idPsicologo())) {
-            throw new ConsultorioException("Id do psicólogo informado não existe!");
-        }
-
-        validadoresAgendamento.forEach(v -> v.validar(dados));
-
-        var paciente = pacienteRepository.getReferenceById(dados.idPaciente());
-        Psicologo psicologo = escolherPsicologo(dados);
-        if (psicologo == null) {
-            throw new ConsultorioException("Não existe psicólogo disponível nessa data!");
-        }
-
-        var sessao = new Sessao(dados.data(), paciente, psicologo);
-        sessao.definirValorSessao(paciente.getValorSessao());
-
-        if (paciente.getValorSessao().compareTo(BigDecimal.ZERO) == 0) {
-            paciente.definirValorSessao(dados.valorSessao());
-            pacienteRepository.save(paciente);
-        }
-
-        sessaoRepository.save(sessao);
-        return new DadosDetalhamentoSessao(sessao);
+        var sessao = agendamento.agendar(paciente, psicologo, dados.especialidade(), dados.data(), dados.valorSessao());
+        pacienteRepository.save(paciente);
+        return new DadosDetalhamentoSessao(sessaoRepository.save(sessao));
     }
 
     @Transactional(readOnly = true)
@@ -116,10 +98,4 @@ public class SessaoService {
         return sessaoRepository.gerarRelatorioDetalhesMensal(inicioMes, fimMes);
     }
 
-    private Psicologo escolherPsicologo(DadosAgendamentoSessao dados) {
-        if (dados.idPsicologo() != null) {
-            return psicologoRepository.getReferenceById(dados.idPsicologo());
-        }
-        return psicologoRepository.escolherPsicologoLivreNaData(dados.especialidade(), dados.data());
-    }
 }
