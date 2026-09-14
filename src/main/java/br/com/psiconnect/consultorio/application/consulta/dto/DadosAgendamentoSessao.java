@@ -1,7 +1,8 @@
 package br.com.psiconnect.consultorio.application.consulta.dto;
 
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Future;
 import br.com.psiconnect.consultorio.domain.psicologo.Especialidade;
 
 import java.math.BigDecimal;
@@ -12,9 +13,8 @@ public record DadosAgendamentoSessao(
         @NotNull
         Long idPaciente,
         @NotNull
-        @Future
-        LocalDateTime data,
+        @Future LocalDateTime data,
         Especialidade especialidade,
-        BigDecimal valorSessao
+        @NotNull @DecimalMin(value = "0.01") BigDecimal valorSessao
 ) {
 }

@@ -11,6 +11,7 @@ import br.com.psiconnect.consultorio.domain.consulta.Sessao;
 import br.com.psiconnect.consultorio.application.port.SessaoRepository;
 import br.com.psiconnect.consultorio.application.paciente.dto.*;
 import br.com.psiconnect.consultorio.domain.exception.ConsultorioException;
+import br.com.psiconnect.consultorio.application.port.LocalAtendimentoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,10 +26,13 @@ import java.util.stream.Collectors;
 public class PacienteService {
     private final PacienteRepository pacienteRepository;
     private final SessaoRepository sessaoRepository;
+    private final LocalAtendimentoRepository localAtendimentoRepository;
 
-    public PacienteService(PacienteRepository pacienteRepository, SessaoRepository sessaoRepository) {
+    public PacienteService(PacienteRepository pacienteRepository, SessaoRepository sessaoRepository,
+                           LocalAtendimentoRepository localAtendimentoRepository) {
         this.pacienteRepository = pacienteRepository;
         this.sessaoRepository = sessaoRepository;
+        this.localAtendimentoRepository = localAtendimentoRepository;
     }
 
     public DadosDetalhePaciente cadastrar(DadosCadastroPaciente dados) {
@@ -90,5 +94,14 @@ public class PacienteService {
         Paciente paciente = pacienteRepository.getReferenceById(dados.id());
         paciente.altaPaciente(dados.motivoAlta());
         pacienteRepository.save(paciente);
+    }
+
+    public DadosDetalhePaciente associarLocal(Long pacienteId, Long localId) {
+        var paciente = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new ConsultorioException("Paciente não encontrado"));
+        var local = localId == null ? null : localAtendimentoRepository.findById(localId)
+                .orElseThrow(() -> new ConsultorioException("Local de atendimento não encontrado"));
+        paciente.associarLocalAtendimento(local);
+        return new DadosDetalhePaciente(pacienteRepository.save(paciente));
     }
 }

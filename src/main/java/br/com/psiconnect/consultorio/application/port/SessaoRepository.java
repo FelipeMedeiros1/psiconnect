@@ -16,8 +16,13 @@ public interface SessaoRepository {
     void deleteById(Long id);
     List<Sessao> findAll();
     Page<Sessao> findAll(Pageable paginacao);
+    Page<Sessao> findAllByCompareceuTrue(Pageable paginacao);
     boolean existsByPacienteIdAndDataBetween(Long idPaciente, LocalDateTime primeiroHorario, LocalDateTime ultimoHorario);
+    boolean existsByPacienteIdAndDataAfterAndDataBefore(Long idPaciente, LocalDateTime inicio, LocalDateTime fim);
     boolean existsByPsicologoIdAndData(Long idPsicologo, LocalDateTime data);
+    boolean existsByPsicologoIdAndDataAndIdNot(Long idPsicologo, LocalDateTime data, Long id);
+    boolean existsByPacienteIdAndDataBetweenAndIdNot(Long idPaciente, LocalDateTime inicio, LocalDateTime fim, Long id);
+    boolean existsByPacienteIdAndDataAfterAndDataBeforeAndIdNot(Long idPaciente, LocalDateTime inicio, LocalDateTime fim, Long id);
     List<Sessao> findAllByPaciente_IdAndDataBetween(Long pacienteId, LocalDateTime inicioMes, LocalDateTime fimMes);
     Page<Sessao> findAllByDataGreaterThan(LocalDateTime data, Pageable paginacao);
     List<Sessao> gerarRelatorioConsultaMensal(LocalDateTime inicioMes, LocalDateTime fimMes);

@@ -19,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/pacientes")
 public class PacienteController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PacienteController.class);
 
     @Autowired
     private PacienteService pacienteService;
@@ -30,12 +31,15 @@ public class PacienteController {
             var uri = uriBuilder.path("/pacientes/{id}").buildAndExpand(pacienteCadastrado.id()).toUri();
             return ResponseEntity.created(uri).body(pacienteCadastrado);
         } catch (ConsultorioException e) {
+            log.warn("event=request_rejected reason=patient_registration_rule status=400");
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     @GetMapping
-    ResponseEntity<Page<DadosListagemPaciente>> listar(@PageableDefault(size = 20, sort = {"nome"}) Pageable paginacao){
+    ResponseEntity<Page<DadosListagemPaciente>> listar(
+            @PageableDefault(size = 20, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC)
+            Pageable paginacao){
         return ResponseEntity.ok(pacienteService.listar(paginacao));
     }
 
@@ -45,6 +49,7 @@ public class PacienteController {
             DadosDetalhePaciente paciente = pacienteService.buscarPorId(id);
             return ResponseEntity.ok(paciente);
         } catch (ConsultorioException e) {
+            log.warn("event=request_rejected reason=patient_not_found status=404");
             return ResponseEntity.notFound().build();
         }
     }
@@ -57,10 +62,17 @@ public class PacienteController {
     @PutMapping("/{id}")
     public ResponseEntity<DadosDetalhePaciente> atualizar(@PathVariable Long id, @RequestBody @Valid DadosAtualizacaoPaciente dados) {
         if (!id.equals(dados.id())) {
+            log.warn("event=request_rejected reason=patient_id_mismatch status=400");
             return ResponseEntity.badRequest().build();
         }
         var pacienteAtualizado = pacienteService.atualizar(dados);
         return ResponseEntity.ok(pacienteAtualizado);
+    }
+
+    @PutMapping("/{id}/local-atendimento")
+    public ResponseEntity<DadosDetalhePaciente> associarLocal(
+            @PathVariable Long id, @RequestBody DadosLocalPaciente dados) {
+        return ResponseEntity.ok(pacienteService.associarLocal(id, dados.localAtendimentoId()));
     }
 
     @DeleteMapping("/{id}")

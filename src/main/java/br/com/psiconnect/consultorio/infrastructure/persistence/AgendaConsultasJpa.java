@@ -26,6 +26,12 @@ public class AgendaConsultasJpa implements AgendaConsultas {
     }
 
     @Override
+    public boolean pacienteIndisponivel(Long pacienteId, LocalDateTime data) {
+        return sessoes.existsByPacienteIdAndDataAfterAndDataBefore(
+                pacienteId, data.minusMinutes(50), data.plusMinutes(50));
+    }
+
+    @Override
     public List<Psicologo> psicologosDaEspecialidade(Especialidade especialidade) {
         return psicologos.findAllByEspecialidadeOrderByIdAsc(especialidade);
     }

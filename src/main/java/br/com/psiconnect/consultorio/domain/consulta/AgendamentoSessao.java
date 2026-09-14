@@ -24,11 +24,20 @@ public final class AgendamentoSessao {
         if (paciente == null) {
             throw new ConsultorioException("Paciente deve ser informado para agendar uma sessão!");
         }
-        if (data == null || !data.isAfter(LocalDateTime.now(clock))) {
-            throw new ConsultorioException("A data da sessão deve estar no futuro!");
+        if (data == null) {
+            throw new ConsultorioException("A data da sessão deve ser informada!");
+        }
+        if (data.toLocalDate().isBefore(LocalDateTime.now(clock).toLocalDate())) {
+            throw new ConsultorioException("A data da consulta não pode ser anterior à data atual!");
+        }
+        if (!data.isAfter(LocalDateTime.now(clock))) {
+            throw new ConsultorioException("O horário da consulta não pode ser anterior à hora atual!");
+        }
+        if (data.toLocalTime().isBefore(java.time.LocalTime.of(7, 0))
+                || data.toLocalTime().isAfter(java.time.LocalTime.of(22, 0))) {
+            throw new ConsultorioException("O horário da consulta deve estar entre 07:00 e 22:00!");
         }
         paciente.validarAgendamento();
-
         Psicologo escolhido;
         if (psicologo == null) {
             escolhido = escolherPsicologo(especialidade, data);
@@ -40,8 +49,15 @@ public final class AgendamentoSessao {
             escolhido = psicologo;
         }
 
+        if (agenda.pacienteIndisponivel(paciente.getId(), data)) {
+            throw new ConsultorioException("Paciente já possui uma consulta em um intervalo menor que 50 minutos!");
+        }
+
         // Somente altera o valor do paciente depois de todas as validações da agenda.
         BigDecimal valor = paciente.definirValorParaAgendamento(valorInformado);
+        if (valor == null || valor.signum() <= 0) {
+            throw new ConsultorioException("O valor da sessão deve ser maior que zero!");
+        }
         return new Sessao(data, paciente, escolhido, valor);
     }
 

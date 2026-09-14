@@ -9,5 +9,7 @@ import java.util.List;
 public interface AgendaConsultas {
     boolean horarioOcupado(Long psicologoId, LocalDateTime data);
 
+    boolean pacienteIndisponivel(Long pacienteId, LocalDateTime data);
+
     List<Psicologo> psicologosDaEspecialidade(Especialidade especialidade);
 }

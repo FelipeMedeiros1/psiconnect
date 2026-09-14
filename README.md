@@ -1,5 +1,32 @@
 # PsiConnect
 
+## Logs e rastreabilidade
+
+Cada requisicao recebe um UUID gerado pelo servidor no header `X-Request-ID`.
+Use esse valor para localizar `requestId` nos logs do console. Um `operationId`
+identifica cada chamada publica aos services, inclusive fora de requisicoes HTTP.
+Os registros usam campos `event`, `operation`, `route`, `status` e `durationMs`.
+
+- `INFO`: inicio/fim de requisicoes e operacoes; conclusao de transacoes externas.
+- `WARN`: respostas 4xx, validacoes, regras de negocio e operacoes com falha.
+- `ERROR`: respostas 5xx e erros inesperados, com tipo e frames da excecao no tratador.
+- `DEBUG`: operacao aguardando confirmacao de uma transacao externa.
+
+O aspecto envolve o interceptor transacional: `operation_completed` so aparece
+apos seu retorno, incluindo o commit. Se houver transacao externa, o evento
+`operation_transaction_completed` informa `committed`, `rolled_back` ou `unknown`
+e mantem os identificadores em `operationRef` e `requestRef`.
+Chamadas internas do mesmo service nao geram outra operacao por usarem o mesmo proxy.
+
+Os logs HTTP usam o modelo da rota (ex.: `/pacientes/nome/{nome}`), nunca a URL
+completa, query string, corpo ou headers recebidos. Argumentos, retornos e mensagens
+de excecao nao sao registrados, pois podem conter dados pessoais ou clinicos.
+SQL e binding de parametros ficam desativados por padrao, inclusive em dev.
+Configure `APP_LOG_LEVEL` para ajustar o nivel da aplicacao (padrao `INFO`).
+Os logs vao para o console; retencao e acesso devem ser configurados no coletor
+do ambiente. Estes registros operacionais nao constituem uma trilha de auditoria
+de autoria: o projeto ainda nao fornece identidade autenticada nos fluxos.
+
 Aplicação Spring Boot / Java 17 organizada pelo contexto de negócio **Consultório**.
 
 ## Arquitetura DDD
@@ -68,6 +95,41 @@ dentro da transação.
   remoção completa de JPA do domínio exigiriam uma mudança adicional de modelo.
 
 ## Executar e testar
+
+Para subir a aplicação localmente no **PowerShell** (terminal iniciado por `PS`),
+abra dois terminais.
+
+No primeiro terminal, inicie o back-end:
+
+```powershell
+cd C:\projetos\psiconnect
+$env:JAVA_HOME = 'C:\Program Files\Java\jdk-17'
+$env:SPRING_PROFILES_ACTIVE = 'dev'
+.\mvnw.cmd spring-boot:run
+```
+
+No segundo terminal, instale as dependências (na primeira execução) e inicie o web:
+
+```powershell
+cd C:\projetos\Psiconnect-web
+npm.cmd install
+npm.cmd start
+```
+
+O back-end ficará disponível em `http://localhost:8080` e o web em
+`http://localhost:4200`.
+
+Se o terminal for realmente o **Git Bash** (prompt terminado em `$`), use:
+
+```bash
+cd /c/projetos/psiconnect
+export JAVA_HOME="/c/Program Files/Java/jdk-17"
+export SPRING_PROFILES_ACTIVE=dev
+./mvnw spring-boot:run
+```
+
+O projeto exige Java 17; iniciar o Maven Wrapper sem ajustar `JAVA_HOME` pode
+fazer a aplicação usar outra versão do Java instalada na máquina.
 
 No PowerShell, configure o JDK 17 instalado:
 

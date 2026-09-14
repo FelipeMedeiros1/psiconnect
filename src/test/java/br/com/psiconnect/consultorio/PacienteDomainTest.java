@@ -47,7 +47,7 @@ class PacienteDomainTest {
         var paciente = paciente();
         var psicologo = new Psicologo("Psicólogo", "123456", Especialidade.ADULTO, null, null);
         var agendamento = new AgendamentoSessao(mock(AgendaConsultas.class), Clock.systemDefaultZone());
-        var sessao = agendamento.agendar(paciente, psicologo, null, LocalDateTime.now().plusDays(1), BigDecimal.ZERO);
+        var sessao = agendamento.agendar(paciente, psicologo, null, LocalDateTime.now().plusDays(1), new BigDecimal("100.00"));
         paciente.adicionarSessao(sessao);
         assertThat(paciente.calcularFaltas()).isEqualTo(1);
         sessao.marcarPresenca();

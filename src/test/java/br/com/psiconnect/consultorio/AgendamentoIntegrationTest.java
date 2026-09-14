@@ -97,17 +97,37 @@ class AgendamentoIntegrationTest {
     }
 
     @Test
-    void selecaoAutomaticaUsaOutroPsicologoQuandoHaInativoEOcupado() {
+    void pacienteSoPodeAgendarNovamenteAposCinquentaMinutos() {
         var paciente = paciente("12345678901");
+        var primeiroPsicologo = psicologo("123456");
+        var segundoPsicologo = psicologo("123457");
+        service.agendar(new DadosAgendamentoSessao(
+                primeiroPsicologo.getId(), paciente.getId(), DATA, null, BigDecimal.TEN));
+
+        assertThatThrownBy(() -> service.agendar(new DadosAgendamentoSessao(
+                segundoPsicologo.getId(), paciente.getId(), DATA.plusMinutes(49), null, null)))
+                .isInstanceOf(ConsultorioException.class)
+                .hasMessageContaining("50 minutos");
+
+        assertThatCode(() -> service.agendar(new DadosAgendamentoSessao(
+                segundoPsicologo.getId(), paciente.getId(), DATA.plusMinutes(50), null, null)))
+                .doesNotThrowAnyException();
+        assertThat(sessoes.findAll()).hasSize(2);
+    }
+
+    @Test
+    void selecaoAutomaticaUsaOutroPsicologoQuandoHaInativoEOcupado() {
+        var pacienteOcupado = paciente("12345678901");
+        var pacienteNovo = paciente("12345678902");
         var inativo = psicologo("123456");
         inativo.desativar();
         psicologos.save(inativo);
         var ocupado = psicologo("123457");
         var livre = psicologo("123458");
-        service.agendar(new DadosAgendamentoSessao(ocupado.getId(), paciente.getId(), DATA, null, BigDecimal.TEN));
+        service.agendar(new DadosAgendamentoSessao(ocupado.getId(), pacienteOcupado.getId(), DATA, null, BigDecimal.TEN));
 
-        var agendada = service.agendar(new DadosAgendamentoSessao(null, paciente.getId(), DATA,
-                Especialidade.ADULTO, null));
+        var agendada = service.agendar(new DadosAgendamentoSessao(null, pacienteNovo.getId(), DATA,
+                Especialidade.ADULTO, BigDecimal.TEN));
 
         assertThat(agendada.idPsicologo()).isEqualTo(livre.getId());
         assertThat(sessoes.findAll()).hasSize(2);

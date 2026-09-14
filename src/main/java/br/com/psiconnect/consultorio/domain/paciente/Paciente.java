@@ -11,6 +11,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import br.com.psiconnect.consultorio.domain.contato.Contato;
 import br.com.psiconnect.consultorio.domain.endereco.Endereco;
+import br.com.psiconnect.consultorio.domain.localatendimento.LocalAtendimento;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -37,10 +38,14 @@ public class Paciente {
     @Embedded
     private Endereco endereco;
     private BigDecimal valorSessao;
+    @Column(columnDefinition = "TEXT")
     private String prontuario;
     private static int contadorProntuario = 1;
     private Boolean status ;
     private String motivoAlta;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "local_atendimento_id")
+    private LocalAtendimento localAtendimento;
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Sessao> sessoes = new ArrayList<>();
 
@@ -105,6 +110,10 @@ public class Paciente {
             throw new ConsultorioException("O valor da sessão deve ser informado e não pode ser negativo!");
         }
         this.valorSessao = valorSessao;
+    }
+
+    public void associarLocalAtendimento(LocalAtendimento localAtendimento) {
+        this.localAtendimento = localAtendimento;
     }
 
     public BigDecimal definirValorParaAgendamento(BigDecimal valorInformado) {

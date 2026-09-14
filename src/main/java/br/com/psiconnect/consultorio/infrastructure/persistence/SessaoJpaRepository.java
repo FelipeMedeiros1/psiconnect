@@ -15,9 +15,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface SessaoJpaRepository extends SessaoRepository, JpaRepository<Sessao, Long> {
+    Page<Sessao> findAllByCompareceuTrue(Pageable paginacao);
     boolean existsByPacienteIdAndDataBetween(Long idPaciente, LocalDateTime primeiroHorario, LocalDateTime ultimoHorario);
 
+    boolean existsByPacienteIdAndDataAfterAndDataBefore(Long idPaciente, LocalDateTime inicio, LocalDateTime fim);
+
     boolean existsByPsicologoIdAndData(Long idPsicologo, LocalDateTime data);
+
+    boolean existsByPsicologoIdAndDataAndIdNot(Long idPsicologo, LocalDateTime data, Long id);
+
+    boolean existsByPacienteIdAndDataBetweenAndIdNot(Long idPaciente, LocalDateTime inicio, LocalDateTime fim, Long id);
+
+    boolean existsByPacienteIdAndDataAfterAndDataBeforeAndIdNot(Long idPaciente, LocalDateTime inicio, LocalDateTime fim, Long id);
 
     List<Sessao> findAllByPaciente_IdAndDataBetween(Long pacienteId, LocalDateTime inicioMes, LocalDateTime fimMes);
 

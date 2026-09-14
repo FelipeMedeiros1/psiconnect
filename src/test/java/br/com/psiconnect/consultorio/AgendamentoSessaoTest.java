@@ -65,9 +65,9 @@ class AgendamentoSessaoTest {
     }
 
     @Test
-    void permiteSessaoGratuitaQuandoZeroEhInformado() {
-        assertThat(agendamento.agendar(paciente(), psicologo(1), null, DATA, BigDecimal.ZERO).getValorSessao())
-                .isEqualByComparingTo(BigDecimal.ZERO);
+    void rejeitaSessaoComValorZero() {
+        assertThatThrownBy(() -> agendamento.agendar(paciente(), psicologo(1), null, DATA, BigDecimal.ZERO))
+                .hasMessageContaining("maior que zero");
     }
 
     @Test
@@ -151,14 +151,19 @@ class AgendamentoSessaoTest {
     }
 
     static Stream<LocalDateTime> datasInvalidas() {
-        return Stream.of(null, LocalDateTime.now(CLOCK), LocalDateTime.now(CLOCK).minusSeconds(1));
+        return Stream.of(
+                null,
+                LocalDateTime.now(CLOCK),
+                LocalDateTime.now(CLOCK).minusMinutes(1),
+                LocalDateTime.of(2030, 1, 1, 6, 59),
+                LocalDateTime.of(2030, 1, 1, 22, 1));
     }
 
     @ParameterizedTest
     @MethodSource("datasInvalidas")
-    void exigeDataFuturaMesmoSemValidacaoHttp(LocalDateTime data) {
+    void exigeDataEHorarioDeAtendimentoValido(LocalDateTime data) {
         assertThatThrownBy(() -> agendamento.agendar(paciente(), psicologo(1), null, data, BigDecimal.TEN))
-                .isInstanceOf(ConsultorioException.class).hasMessageContaining("futuro");
+                .isInstanceOf(ConsultorioException.class);
         verifyNoInteractions(agenda);
     }
 
