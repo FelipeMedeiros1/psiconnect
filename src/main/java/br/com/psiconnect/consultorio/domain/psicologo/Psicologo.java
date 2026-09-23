@@ -55,6 +55,10 @@ public class Psicologo {
         this.ativo = false;
     }
 
+    public void reativar() {
+        this.ativo = true;
+    }
+
     public void validarAgendamento() {
         if (!Boolean.TRUE.equals(ativo)) {
             throw new ConsultorioException("Consulta não pode ser agendada com psicólogo inativo!");

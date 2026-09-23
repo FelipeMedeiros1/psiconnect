@@ -23,6 +23,17 @@ class PsicologoDomainTest {
     }
 
     @Test
+    void psicologoInativoPodeSerReativado() {
+        var psicologo = new Psicologo("Ana", "123456", Especialidade.ADULTO, null, null);
+        psicologo.desativar();
+
+        psicologo.reativar();
+
+        assertThat(psicologo.getAtivo()).isTrue();
+        psicologo.validarAgendamento();
+    }
+
+    @Test
     void atualizacaoParcialPreservaCamposAusentes() {
         var contato = new Contato("11999999999", "ana@example.com");
         var endereco = new Endereco("Rua A", "Centro", "12345678", "1", "Casa", "Cidade", "SP");

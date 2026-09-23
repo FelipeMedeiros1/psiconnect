@@ -54,5 +54,18 @@ class PacienteApiTest {
                 .andExpect(status().isNoContent());
         mvc.perform(get("/pacientes/{id}", id))
                 .andExpect(jsonPath("$.status").value(false));
+        mvc.perform(put("/pacientes/{id}/reativar", id))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/pacientes/{id}", id))
+                .andExpect(jsonPath("$.status").value(true));
+        mvc.perform(put("/pacientes/{id}/alta", id).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"motivo\":\"Novo encerramento\",\"usuario\":\"Sistema\"}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/pacientes/altas"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].pacienteId").value(id))
+                .andExpect(jsonPath("$[0].motivo").value("Novo encerramento"))
+                .andExpect(jsonPath("$[1].pacienteId").value(id))
+                .andExpect(jsonPath("$[1].motivo").value("Tratamento concluído"));
     }
 }

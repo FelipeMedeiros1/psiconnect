@@ -77,4 +77,10 @@ public class PsicologoService {
         psicologo.desativar();
         psicologoRepository.save(psicologo);
     }
+
+    public void reativar(Long id) {
+        Psicologo psicologo = buscarPorId(id);
+        psicologo.reativar();
+        psicologoRepository.save(psicologo);
+    }
 }

@@ -67,7 +67,11 @@ public class Sessao {
     }
 
     public void registrarEvolucao(String informacoes) {
-        this.prontuario += "\n" + registroEvolucao(informacoes);
+        // A sessao pode ter sido agendada antes de atendimentos anteriores serem
+        // concluidos. Use sempre o prontuario atual do paciente para nao sobrescrever
+        // evolucoes registradas depois do agendamento desta sessao.
+        this.prontuario = this.paciente.getProntuario();
+        this.prontuario = prontuarioComQuebraDeLinha() + registroEvolucao(informacoes);
         this.paciente.atualizarProntuario(this.prontuario);
     }
 
@@ -102,7 +106,7 @@ public class Sessao {
     }
 
     private String registroEvolucao(String informacoes) {
-        String dataEdicao = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        String dataEdicao = this.data.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         return dataEdicao + " - " + this.psicologo.getNome() + " - " + informacoes;
     }
 }

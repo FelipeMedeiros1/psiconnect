@@ -15,6 +15,7 @@ import br.com.psiconnect.consultorio.domain.localatendimento.LocalAtendimento;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,12 @@ public class Paciente {
     private static int contadorProntuario = 1;
     private Boolean status ;
     private String motivoAlta;
+    private LocalDateTime dataAlta;
+    private String usuarioAlta;
+    @ElementCollection
+    @CollectionTable(name = "paciente_historico_altas", joinColumns = @JoinColumn(name = "paciente_id"))
+    @OrderColumn(name = "ordem")
+    private List<AltaPaciente> historicoAltas = new ArrayList<>();
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "local_atendimento_id")
     private LocalAtendimento localAtendimento;
@@ -84,9 +91,26 @@ public class Paciente {
         }
     }
 
-    public void altaPaciente(String motivoAlta) {
+    public void altaPaciente(String motivoAlta, String usuarioAlta) {
+        if (motivoAlta == null || motivoAlta.isBlank()) {
+            throw new ConsultorioException("O motivo da alta é obrigatório");
+        }
+        if (historicoAltas.isEmpty() && dataAlta != null) {
+            historicoAltas.add(new AltaPaciente(this.dataAlta, this.usuarioAlta, this.motivoAlta));
+        }
         this.status = false;
-        this.motivoAlta = motivoAlta;
+        this.motivoAlta = motivoAlta.trim();
+        this.dataAlta = LocalDateTime.now();
+        this.usuarioAlta = usuarioAlta == null || usuarioAlta.isBlank() ? "Sistema" : usuarioAlta.trim();
+        this.historicoAltas.add(new AltaPaciente(this.dataAlta, this.usuarioAlta, this.motivoAlta));
+    }
+
+    public void altaPaciente(String motivoAlta) {
+        altaPaciente(motivoAlta, "Sistema");
+    }
+
+    public void reativar() {
+        this.status = true;
     }
 
     public void adicionarSessao(Sessao sessao) {

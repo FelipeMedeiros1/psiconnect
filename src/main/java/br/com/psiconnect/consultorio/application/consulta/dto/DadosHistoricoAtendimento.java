@@ -7,10 +7,10 @@ import java.math.BigDecimal;
 
 public record DadosHistoricoAtendimento(
         Long id, LocalDateTime data, Long psicologoId, String psicologo, Long pacienteId,
-        String paciente, BigDecimal valorSessao, String historico) {
+        String paciente, Boolean pacienteAtivo, BigDecimal valorSessao, String historico, String evolucao) {
     public DadosHistoricoAtendimento(Sessao sessao) {
         this(sessao.getId(), sessao.getData(), sessao.getPsicologo().getId(), sessao.getPsicologo().getNome(),
-                sessao.getPaciente().getId(), sessao.getPaciente().getNome(), sessao.getValorSessao(),
-                sessao.getProntuario());
+                sessao.getPaciente().getId(), sessao.getPaciente().getNome(), sessao.getPaciente().getStatus(), sessao.getValorSessao(),
+                sessao.getProntuario(), sessao.getEvolucao());
     }
 }

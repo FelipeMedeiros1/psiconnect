@@ -5,6 +5,6 @@ import jakarta.validation.constraints.Size;
 
 public record DadosRegistroAtendimento(
         @NotBlank
-        @Size(max = 600, message = "A evolução deve ter no máximo 600 caracteres")
+        @Size(max = 500, message = "A evolução deve ter no máximo 500 caracteres")
         String informacoes) {
 }

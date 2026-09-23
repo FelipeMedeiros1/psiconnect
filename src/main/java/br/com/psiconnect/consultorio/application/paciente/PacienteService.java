@@ -90,10 +90,29 @@ public class PacienteService {
         pacienteRepository.deleteById(id);
     }
 
-    public void altaPaciente(DadosAtualizacaoPaciente dados) {
-        Paciente paciente = pacienteRepository.getReferenceById(dados.id());
-        paciente.altaPaciente(dados.motivoAlta());
+    public void altaPaciente(Long id, DadosAltaPaciente dados) {
+        Paciente paciente = pacienteRepository.findById(id)
+                .orElseThrow(() -> new ConsultorioException("Paciente não encontrado"));
+        paciente.altaPaciente(dados.motivo(), dados.usuario());
         pacienteRepository.save(paciente);
+    }
+
+    public void reativarPaciente(Long id) {
+        Paciente paciente = pacienteRepository.findById(id)
+                .orElseThrow(() -> new ConsultorioException("Paciente não encontrado"));
+        paciente.reativar();
+        pacienteRepository.save(paciente);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DadosHistoricoAlta> listarAltas() {
+        return pacienteRepository.findAll().stream()
+                .filter(paciente -> paciente.getDataAlta() != null)
+                .flatMap(paciente -> paciente.getHistoricoAltas().isEmpty()
+                        ? java.util.stream.Stream.of(new DadosHistoricoAlta(paciente))
+                        : paciente.getHistoricoAltas().stream().map(alta -> new DadosHistoricoAlta(paciente, alta)))
+                .sorted(java.util.Comparator.comparing(DadosHistoricoAlta::data).reversed())
+                .toList();
     }
 
     public DadosDetalhePaciente associarLocal(Long pacienteId, Long localId) {

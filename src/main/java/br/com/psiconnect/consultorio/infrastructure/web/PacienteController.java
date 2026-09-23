@@ -81,10 +81,26 @@ public class PacienteController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/alta")
-    public ResponseEntity<Void> altaPaciente(@RequestBody DadosAtualizacaoPaciente dados) {
-        pacienteService.altaPaciente(dados);
+    @PutMapping("/{id}/alta")
+    public ResponseEntity<Void> altaPaciente(@PathVariable Long id, @RequestBody @Valid DadosAltaPaciente dados) {
+        pacienteService.altaPaciente(id, dados);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/reativar")
+    public ResponseEntity<Void> reativarPaciente(@PathVariable Long id) {
+        pacienteService.reativarPaciente(id);
+        return ResponseEntity.noContent().build();
+    }
+    @PutMapping("/alta")
+    public ResponseEntity<Void> altaPacienteLegado(@RequestBody @Valid DadosAtualizacaoPaciente dados) {
+        pacienteService.altaPaciente(dados.id(), new DadosAltaPaciente(dados.motivoAlta(), "Sistema"));
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/altas")
+    public ResponseEntity<List<DadosHistoricoAlta>> listarAltas() {
+        return ResponseEntity.ok(pacienteService.listarAltas());
     }
 
     @GetMapping("/relatorio/{inicioMes}/{fimMes}")

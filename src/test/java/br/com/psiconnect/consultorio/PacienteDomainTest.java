@@ -43,6 +43,23 @@ class PacienteDomainTest {
     }
 
     @Test
+    void reativacaoPermiteAgendamentoEPreservaDadosDaAlta() {
+        var paciente = paciente();
+        paciente.altaPaciente("Tratamento concluído");
+        var dataAlta = paciente.getDataAlta();
+        paciente.reativar();
+
+        assertThat(paciente.getStatus()).isTrue();
+        assertThat(paciente.getMotivoAlta()).isEqualTo("Tratamento concluído");
+        assertThat(paciente.getDataAlta()).isEqualTo(dataAlta);
+        paciente.validarAgendamento();
+        paciente.altaPaciente("Encerramento posterior");
+
+        assertThat(paciente.getHistoricoAltas()).hasSize(2);
+        assertThat(paciente.getHistoricoAltas()).extracting("motivo")
+                .containsExactly("Tratamento concluído", "Encerramento posterior");
+    }
+    @Test
     void presencaEEvolucaoAtualizamHistoricoDoPaciente() {
         var paciente = paciente();
         var psicologo = new Psicologo("Psicólogo", "123456", Especialidade.ADULTO, null, null);
