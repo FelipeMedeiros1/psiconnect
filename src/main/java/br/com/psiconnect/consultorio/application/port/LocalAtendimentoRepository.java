@@ -10,4 +10,5 @@ public interface LocalAtendimentoRepository {
     Optional<LocalAtendimento> findById(Long id);
     Page<LocalAtendimento> findAll(Pageable pageable);
     boolean existsByNomeLugarIgnoreCase(String nomeLugar);
+    Optional<LocalAtendimento> findByNomeLugarIgnoreCase(String nomeLugar);
 }

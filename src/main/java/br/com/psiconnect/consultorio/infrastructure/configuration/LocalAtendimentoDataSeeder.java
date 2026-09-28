@@ -21,22 +21,32 @@ public class LocalAtendimentoDataSeeder implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        criarSeNaoExistir("Consultório - SANTANA", enderecoSantana());
+        renomearConsultorioSantana();
         criarSeNaoExistir("ONLINE", null);
         criarSeNaoExistir("CASA - PACIENTE", null);
     }
 
+    private void renomearConsultorioSantana() {
+        var endereco = enderecoPaulista();
+        var existente = locais.findByNomeLugarIgnoreCase("Consultório - SANTANA");
+        if (existente.isPresent()) {
+            existente.get().atualizar("Consultório - PAULISTA", endereco);
+            locais.save(existente.get());
+            return;
+        }
+        criarSeNaoExistir("Consultório - PAULISTA", endereco);
+    }
     private void criarSeNaoExistir(String nome, Endereco endereco) {
         if (!locais.existsByNomeLugarIgnoreCase(nome)) {
             locais.save(new LocalAtendimento(nome, endereco));
         }
     }
 
-    private Endereco enderecoSantana() {
+    private Endereco enderecoPaulista() {
         return new Endereco(
-                "Rua Judith Zumkeller",
+                "Avenida Paulista",
                 "Parque Mandaqui",
-                "02422020",
+                "01310-000",
                 "10",
                 "",
                 "São Paulo",
