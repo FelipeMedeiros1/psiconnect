@@ -1,0 +1,12 @@
+{
+  "folders": [
+    {
+      "name": "psiconnect (backend)",
+      "path": "."
+    },
+    {
+      "name": "Psiconnect-web (frontend)",
+      "path": "../Psiconnect-web"
+    }
+  ]
+}
