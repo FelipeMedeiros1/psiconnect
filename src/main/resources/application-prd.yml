@@ -1,0 +1,30 @@
+# Ative com SPRING_PROFILES_ACTIVE=prd.
+# DB_URL deve conter a URL JDBC completa do MySQL.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    show-sql: false
+    hibernate:
+      # O schema deve existir antes de iniciar a aplicacao.
+      ddl-auto: validate
+  h2:
+    console:
+      enabled: false
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  error:
+    include-stacktrace: never
+    include-message: never
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

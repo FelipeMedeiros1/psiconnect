@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:loja_brinquedo
+    url: jdbc:h2:mem:psiconnect
     driverClassName: org.h2.Driver
     username: felipe
     password:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
-    show-sql: true
+    show-sql: false
     open-in-view: false
     hibernate:
       ddl-auto: create # validate | update | create | create-drop

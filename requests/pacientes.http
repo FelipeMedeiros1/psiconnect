@@ -1,0 +1,29 @@
+### Cadastrar paciente
+POST http://localhost:8080/pacientes
+Content-Type: application/json
+Accept: application/json
+
+{
+  "responsavel": null,
+  "dataNascimento": "1983-07-23",
+  "nome": "felipe medeiros",
+  "cpf": "12345678912",
+  "profissao": "QA",
+  "contato": {
+    "telefone": "11312345678",
+    "email": "qa@teste.com"
+  },
+  "endereco": {
+    "logradouro": "Rua Judith Zumkeller",
+    "numero": "1",
+    "complemento": "",
+    "cep": "02422020",
+    "bairro": "Parque Mandaqui",
+    "cidade": "São Paulo",
+    "uf": "SP"
+  }
+}
+
+### Listar pacientes
+GET http://localhost:8080/pacientes
+Accept: application/json
